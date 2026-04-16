@@ -495,7 +495,8 @@ export default function Home() {
   // Detects proxy/network failures and shows the timeout banner instead of a generic error
   const handleAnalysisError = (e: any, resetFn?: () => void) => {
     const msg: string = (e?.message || "").toLowerCase();
-    const isNetworkError = msg.includes("failed to fetch") || msg.includes("networkerror") || msg.includes("load failed") || msg.includes("fetch");
+    // Only show timeout banner for true network-level failures (not API errors)
+    const isNetworkError = msg === "failed to fetch" || msg === "networkerror when attempting to fetch resource." || msg === "load failed";
     if (isNetworkError) {
       setTimedOut(true);
     } else {
