@@ -282,7 +282,7 @@ Write in that exact style — conversational paragraphs, real numbers, no lists,
         const scriptPath = "/home/user/workspace/revenue-recap-app/server/transcribe_helper.py";
         try {
           const output = execFileSync("python3", [scriptPath, tmpFile, fileData.mimetype], {
-            timeout: 120000,
+            timeout: 600000,
             encoding: "utf8",
           });
           transcriptText = output.trim();
@@ -295,7 +295,7 @@ Write in that exact style — conversational paragraphs, real numbers, no lists,
 
 Here is the call transcript:
 ---
-${transcriptText.slice(0, 8000)}
+${transcriptText.slice(0, 80000)}
 ---
 
 ${STYLE_INSTRUCTION}
