@@ -1,17 +1,13 @@
 import type { Express, Request, Response } from "express";
-import multer from "multer";
 import Anthropic from "@anthropic-ai/sdk";
 import * as XLSX from "xlsx";
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
-
 // Create a fresh Anthropic instance per-call so the API key is always current
-// (the llm-api:website credential token refreshes on each incoming request)
 function getClient() {
   return new Anthropic();
 }
 
-// ── Shared style instruction injected into every prompt ───────────────────────
+// ── Shared style instruction ───────────────────────────────────────────────────
 const STYLE_INSTRUCTION = `
 CRITICAL FORMATTING RULES — follow these exactly, no exceptions:
 - Write in plain conversational prose. NO bullet points. NO dashes as bullets. NO markdown bold (**text**). NO headers. NO lists of any kind.
@@ -23,12 +19,21 @@ CRITICAL FORMATTING RULES — follow these exactly, no exceptions:
 - Do NOT use asterisks, hyphens as list markers, or any markdown formatting whatsoever.
 `;
 
+// ── Helper: extract base64 file from JSON body ────────────────────────────────
+function getFileFromBody(body: any, fieldName: string): { buffer: Buffer; mimetype: string; name: string } | null {
+  const b64 = body[fieldName];
+  const mime = body[`${fieldName}_type`] || "application/octet-stream";
+  const name = body[`${fieldName}_name`] || fieldName;
+  if (!b64) return null;
+  return {
+    buffer: Buffer.from(b64, "base64"),
+    mimetype: mime,
+    name,
+  };
+}
+
 // ── Vision helper ─────────────────────────────────────────────────────────────
-async function analyzeImage(
-  imageBuffer: Buffer,
-  mimeType: string,
-  prompt: string
-): Promise<string> {
+async function analyzeImage(imageBuffer: Buffer, mimeType: string, prompt: string): Promise<string> {
   const validMime = (
     mimeType === "image/jpeg" || mimeType === "image/jpg"
       ? "image/jpeg"
@@ -75,15 +80,15 @@ async function analyzeText(prompt: string): Promise<string> {
 }
 
 export function registerAIRoutes(app: Express) {
-  // ── Pickup & Pacing (Excel) ─────────────────────────────────────────────
-  app.post("/api/ai/pickup", upload.single("file"), async (req: Request, res: Response) => {
+  // ── Pickup & Pacing (Excel via base64 JSON) ──────────────────────────────
+  app.post("/api/ai/pickup", async (req: Request, res: Response) => {
     try {
-      if (!req.file) return res.status(400).json({ error: "No file provided" });
+      const fileData = getFileFromBody(req.body, "file");
+      if (!fileData) return res.status(400).json({ error: "No file provided" });
 
-      // Parse Excel
       let excelText = "";
       try {
-        const wb = XLSX.read(req.file.buffer, { type: "buffer" });
+        const wb = XLSX.read(fileData.buffer, { type: "buffer" });
         for (const sheetName of wb.SheetNames.slice(0, 3)) {
           const ws = wb.Sheets[sheetName];
           const csv = XLSX.utils.sheet_to_csv(ws);
@@ -124,9 +129,10 @@ For the Revenue Delta pacing direction: if the value is positive use "up", if ne
   });
 
   // ── CoStar ───────────────────────────────────────────────────────────────
-  app.post("/api/ai/costar", upload.single("image"), async (req: Request, res: Response) => {
+  app.post("/api/ai/costar", async (req: Request, res: Response) => {
     try {
-      if (!req.file) return res.status(400).json({ error: "No image provided" });
+      const fileData = getFileFromBody(req.body, "image");
+      if (!fileData) return res.status(400).json({ error: "No image provided" });
       const period = req.body.period === "28" ? "last 28 days" : "last 7 days";
 
       const prompt = `Analyze this CoStar hotel performance report screenshot. This data covers the ${period}.
@@ -143,7 +149,7 @@ RevPAR: [1-2 sentences covering hotel RevPAR $ vs comp set RevPAR $, RGI index, 
 
 Use actual numbers from the screenshot wherever visible. If we're above index (above 100), say so positively. If below, frame as an opportunity. Sound like a sharp revenue manager, not a report generator.`;
 
-      const result = await analyzeImage(req.file.buffer, req.file.mimetype, prompt);
+      const result = await analyzeImage(fileData.buffer, fileData.mimetype, prompt);
       res.json({ summary: result });
     } catch (e: any) {
       console.error("CoStar analysis error:", e);
@@ -152,9 +158,10 @@ Use actual numbers from the screenshot wherever visible. If we're above index (a
   });
 
   // ── OTA / Expedia ────────────────────────────────────────────────────────
-  app.post("/api/ai/ota", upload.single("image"), async (req: Request, res: Response) => {
+  app.post("/api/ai/ota", async (req: Request, res: Response) => {
     try {
-      if (!req.file) return res.status(400).json({ error: "No image provided" });
+      const fileData = getFileFromBody(req.body, "image");
+      if (!fileData) return res.status(400).json({ error: "No image provided" });
 
       const periodMap: Record<string, string> = {
         next14: "stays booked for the next 14 days vs comp set",
@@ -172,7 +179,7 @@ ${STYLE_INSTRUCTION}
 
 Write 2-3 short paragraphs. Include how we compare to the comp set, any standout numbers, and 1-2 opportunities if visible (visibility, pricing, restrictions, content). Keep each paragraph to 2-3 sentences. Mention actual figures where you can read them.`;
 
-      const result = await analyzeImage(req.file.buffer, req.file.mimetype, prompt);
+      const result = await analyzeImage(fileData.buffer, fileData.mimetype, prompt);
       res.json({ summary: result });
     } catch (e: any) {
       console.error("OTA analysis error:", e);
@@ -181,16 +188,16 @@ Write 2-3 short paragraphs. Include how we compare to the comp set, any standout
   });
 
   // ── Business Mix ─────────────────────────────────────────────────────────
-  app.post("/api/ai/business-mix", upload.single("file"), async (req: Request, res: Response) => {
+  app.post("/api/ai/business-mix", async (req: Request, res: Response) => {
     try {
-      if (!req.file) return res.status(400).json({ error: "No file provided" });
+      const fileData = getFileFromBody(req.body, "file");
+      if (!fileData) return res.status(400).json({ error: "No file provided" });
 
       const today = new Date();
       const dayOfMonth = today.getDate();
       const monthName = today.toLocaleString("en-US", { month: "long" });
       const dateStr = today.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
-      // Build a natural, date-aware lead-off phrase the AI can weave into its opening sentence
       const daysLeft = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate() - dayOfMonth;
       const timingContext =
         dayOfMonth <= 3
@@ -207,10 +214,9 @@ Write 2-3 short paragraphs. Include how we compare to the comp set, any standout
           ? `We're in the back half of ${monthName} now with about ${daysLeft} days remaining — the month is nearly written.`
           : `${monthName} is almost in the books with only ${daysLeft} days left — attention is shifting to next month.`;
 
-      // Parse Excel
       let excelText = "";
       try {
-        const wb = XLSX.read(req.file.buffer, { type: "buffer" });
+        const wb = XLSX.read(fileData.buffer, { type: "buffer" });
         for (const sheetName of wb.SheetNames.slice(0, 3)) {
           const ws = wb.Sheets[sheetName];
           const csv = XLSX.utils.sheet_to_csv(ws);
@@ -257,28 +263,25 @@ Write in that exact style — conversational paragraphs, real numbers, no lists,
   });
 
   // ── Call Notes Transcription ─────────────────────────────────────────────
-  app.post("/api/ai/transcribe", upload.single("file"), async (req: Request, res: Response) => {
+  app.post("/api/ai/transcribe", async (req: Request, res: Response) => {
     try {
-      if (!req.file) return res.status(400).json({ error: "No file provided" });
+      const fileData = getFileFromBody(req.body, "file");
+      if (!fileData) return res.status(400).json({ error: "No file provided" });
       const fileType = req.body.file_type || "transcript";
 
       let transcriptText = "";
-
       if (fileType === "transcript") {
-        transcriptText = req.file.buffer.toString("utf-8");
+        transcriptText = fileData.buffer.toString("utf-8");
       } else {
         const { execFileSync } = await import("child_process");
         const os = await import("os");
         const path = await import("path");
         const fs = await import("fs");
-
-        const tmpFile = path.join(os.tmpdir(), `audio_${Date.now()}_${req.file.originalname || "upload"}`);
-        fs.writeFileSync(tmpFile, req.file.buffer);
-
+        const tmpFile = path.join(os.tmpdir(), `audio_${Date.now()}_${fileData.name}`);
+        fs.writeFileSync(tmpFile, fileData.buffer);
         const scriptPath = "/home/user/workspace/revenue-recap-app/server/transcribe_helper.py";
-
         try {
-          const output = execFileSync("python3", [scriptPath, tmpFile, req.file.mimetype || "audio/mpeg"], {
+          const output = execFileSync("python3", [scriptPath, tmpFile, fileData.mimetype], {
             timeout: 120000,
             encoding: "utf8",
           });
@@ -307,7 +310,7 @@ Write 2-4 short paragraphs covering: key topics discussed, any decisions made, a
     }
   });
 
-  // ── Send Email via Gmail (nodemailer + app password) ────────────────
+  // ── Send Email via Gmail ─────────────────────────────────────────────────
   app.post("/api/send-email", async (req: Request, res: Response) => {
     try {
       const { to, subject, htmlBody, textBody } = req.body;

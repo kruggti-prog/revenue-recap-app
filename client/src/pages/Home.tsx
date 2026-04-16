@@ -500,7 +500,7 @@ export default function Home() {
     if (isNetworkError) {
       setTimedOut(true);
     } else {
-      toast({ title: "Analysis failed", description: e.message, variant: "destructive" });
+      toast({ title: "Analysis failed", description: e.message || "Unknown error", variant: "destructive" });
     }
     resetFn?.();
   };
