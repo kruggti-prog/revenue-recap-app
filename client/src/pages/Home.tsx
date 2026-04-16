@@ -221,7 +221,7 @@ function buildEmailSections(f: FormState): string {
     lines.push("BUSINESS MIX REVIEW");
     lines.push("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     if (f.businessMixFileName) {
-      lines.push(`See attached: ${f.businessMixFileName}`);
+      lines.push("See Business Mix Review attached.");
     } else {
       lines.push("See current mix report attached.");
     }
@@ -256,13 +256,13 @@ function buildEmailHTML(f: FormState): string {
   const h2 = (t: string) =>
     `<h2 style="font-family:monospace;font-size:13px;font-weight:700;letter-spacing:.08em;color:#1e3a5f;margin:0 0 6px">${t}</h2>`;
   const p = (t: string) =>
-    t ? `<p style="font-family:Aptos,Arial,sans-serif;font-size:12pt;line-height:1.6;margin:6px 0;white-space:pre-wrap">${t}</p>` : "";
+    t ? `<p style="font-family:Aptos,Arial,sans-serif;font-size:12pt;line-height:1.0;margin:6px 0;white-space:pre-wrap">${t}</p>` : "";
   const img = (dataUrl: string | null) =>
     dataUrl
       ? `<img src="${dataUrl}" style="max-width:100%;border:1px solid #ddd;border-radius:4px;margin:8px 0" alt="screenshot">`
       : "";
 
-  let html = `<div style="font-family:Aptos,Arial,sans-serif;font-size:12pt;line-height:1.6;max-width:700px">`;
+  let html = `<div style="font-family:Aptos,Arial,sans-serif;font-size:12pt;line-height:1.0;max-width:700px">`;
   html += p("Hi Team,");
   html += p(f.template === "mf-callrecap" ? "Thank you for today's call!" : `Here is your ${templateLabel} Revenue Recap.`);
   html += p("Please find the recap below.");
@@ -285,7 +285,7 @@ function buildEmailHTML(f: FormState): string {
   // Market Analysis (MF Bi-Weekly only)
   if (f.template === "mf-biweekly" || f.template === "mf-callrecap") {
     html += hr + h2("MARKET ANALYSIS &amp; UPCOMING DEMAND DRIVERS");
-    html += `<p style="font-family:Aptos,Arial,sans-serif;font-size:12pt;line-height:1.6;margin:6px 0;color:#555">Here&#39;s who is booking through local channels in your market</p>`;
+    html += `<p style="font-family:Aptos,Arial,sans-serif;font-size:12pt;line-height:1.0;margin:6px 0;color:#555">Here&#39;s who is booking through local channels in your market</p>`;
     html += img(f.marketImageData);
   }
 
@@ -310,7 +310,7 @@ function buildEmailHTML(f: FormState): string {
   // Business Mix
   if (f.template !== "nonmf-monthly") {
     html += hr + h2("BUSINESS MIX REVIEW");
-    html += p(f.businessMixFileName ? `See attached: ${f.businessMixFileName}` : "See current mix report attached.");
+    html += p("See Business Mix Review attached.");
     html += p(f.businessMixAnalysis.trim() || "[Business Mix summary will appear here after Excel upload + analyze]");
   }
 
@@ -1295,18 +1295,8 @@ function formatPickupAnalysis(raw: string): string {
     const trimmed = line.trim();
     if (!trimmed) continue;
     // Try to parse the structured format from Claude
-    const match = trimmed.match(
-      /^(Current Month|Next Month|Following Month):\s*([^|]+)\s*\|\s*RN:\s*([^|]+)\s*\|\s*Rev:\s*([^|]+)\s*\|\s*ADR:\s*([^|]+)\s*\|\s*Delta pacing\s*(.+)$/i
-    );
-    if (match) {
-      const [, label, month, rn, rev, adr, delta] = match;
-      formatted.push(
-        `${month.trim()} Pickup ${rn.trim()} RN / ${rev.trim()} Rev / ${adr.trim()} ADR, Revenue Delta pacing ${delta.trim()}`
-      );
-    } else {
-      // Pass through as-is
-      formatted.push(trimmed);
-    }
+      // Pass through as-is — Claude now returns "Month Year | RN: ... | Rev: ... | ADR: ... | Revenue Delta pacing ..."
+    formatted.push(trimmed);
   }
   return formatted.join("\n");
 }
