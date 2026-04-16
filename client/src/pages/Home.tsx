@@ -258,7 +258,7 @@ function buildEmailHTML(f: FormState): string {
   const h2 = (t: string) =>
     `<h2 style="font-family:monospace;font-size:13px;font-weight:700;letter-spacing:.08em;color:#1e3a5f;margin:0 0 6px">${t}</h2>`;
   const p = (t: string) =>
-    t ? `<p style="font-family:Aptos,Arial,sans-serif;font-size:12pt;line-height:1.0;margin:6px 0;white-space:pre-wrap">${t}</p>` : "";
+    t ? `<p style="font-family:Aptos,Arial,sans-serif;font-size:12pt;line-height:1.2;margin:0;white-space:pre-wrap">${t}</p>` : "";
   const img = (dataUrl: string | null) =>
     dataUrl
       ? `<img src="${dataUrl}" style="max-width:100%;border:1px solid #ddd;border-radius:4px;margin:8px 0" alt="screenshot">`
@@ -293,7 +293,7 @@ function buildEmailHTML(f: FormState): string {
   // Market Analysis (MF Bi-Weekly only)
   if (f.template === "mf-biweekly" || f.template === "mf-callrecap") {
     html += hr + h2("MARKET ANALYSIS &amp; UPCOMING DEMAND DRIVERS");
-    html += `<p style="font-family:Aptos,Arial,sans-serif;font-size:12pt;line-height:1.0;margin:6px 0;color:#555">Here&#39;s who is booking through local channels in your market</p>`;
+    html += `<p style="font-family:Aptos,Arial,sans-serif;font-size:12pt;line-height:1.2;margin:0;color:#555">Here&#39;s who is booking through local channels in your market</p>`;
     html += img(f.marketImageData);
   }
 
