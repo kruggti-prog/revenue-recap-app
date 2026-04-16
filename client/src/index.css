@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Hospitality palette — warm navy + gold */
+    --background: 220 20% 97%;
+    --foreground: 222 30% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 30% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 30% 12%;
+
+    /* Navy primary */
+    --primary: 221 50% 28%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Gold accent */
+    --secondary: 40 85% 53%;
+    --secondary-foreground: 222 30% 12%;
+
+    --muted: 220 16% 92%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 40 85% 95%;
+    --accent-foreground: 40 60% 25%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 14% 87%;
+    --input: 220 14% 87%;
+    --ring: 221 50% 28%;
+
+    --radius: 0.5rem;
+
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-body: 'DM Sans', 'Helvetica Neue', sans-serif;
+  }
+
+  .dark {
+    --background: 222 30% 8%;
+    --foreground: 220 20% 92%;
+
+    --card: 222 28% 11%;
+    --card-foreground: 220 20% 92%;
+
+    --popover: 222 28% 11%;
+    --popover-foreground: 220 20% 92%;
+
+    --primary: 213 65% 58%;
+    --primary-foreground: 222 30% 8%;
+
+    --secondary: 40 80% 55%;
+    --secondary-foreground: 222 30% 8%;
+
+    --muted: 222 20% 16%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 222 20% 16%;
+    --accent-foreground: 220 20% 92%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 222 20% 20%;
+    --input: 222 20% 20%;
+    --ring: 213 65% 58%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 3px;
+}
+
+/* Email preview monospace area */
+.email-preview {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Section divider */
+.section-label {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+  letter-spacing: 0.02em;
+}
