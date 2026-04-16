@@ -142,13 +142,15 @@ function buildEmailSections(f: FormState): string {
       ? "MF Call Recap"
       : "NON MF Monthly";
 
+  const currentMonth = new Date().toLocaleString("en-US", { month: "long" });
   lines.push("Hi Team,");
   if (f.template === "mf-callrecap") {
     lines.push("Thank you for today's call!");
+  } else if (f.template === "mf-biweekly") {
+    lines.push("I hope you're doing well. Below is your biweekly revenue update.");
   } else {
-    lines.push(`Here is your ${templateLabel} Revenue Recap.`);
+    lines.push(`I hope you're doing well. Below is your monthly revenue update for ${currentMonth}. If you have any questions or would like to talk through anything in more detail, please feel free to reach out.`);
   }
-  lines.push("Please find the recap below.");
   lines.push("");
 
   // ── Pickup & Pacing ──
@@ -263,9 +265,15 @@ function buildEmailHTML(f: FormState): string {
       : "";
 
   let html = `<div style="font-family:Aptos,Arial,sans-serif;font-size:12pt;line-height:1.0;max-width:700px">`;
+  const currentMonth = new Date().toLocaleString("en-US", { month: "long" });
   html += p("Hi Team,");
-  html += p(f.template === "mf-callrecap" ? "Thank you for today's call!" : `Here is your ${templateLabel} Revenue Recap.`);
-  html += p("Please find the recap below.");
+  if (f.template === "mf-callrecap") {
+    html += p("Thank you for today's call!");
+  } else if (f.template === "mf-biweekly") {
+    html += p("I hope you're doing well. Below is your biweekly revenue update.");
+  } else {
+    html += p(`I hope you're doing well. Below is your monthly revenue update for ${currentMonth}. If you have any questions or would like to talk through anything in more detail, please feel free to reach out.`);
+  }
 
   // Pickup & Pacing
   html += hr + h2("PICKUP &amp; PACING SNAPSHOT");
