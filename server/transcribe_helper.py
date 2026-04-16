@@ -14,12 +14,14 @@ async def main():
     filepath = sys.argv[1]
     media_type = sys.argv[2]
 
-    # Map video types to audio for transcription
+    # Map video and M4A types to audio for transcription
     type_map = {
         "video/mp4": "audio/mp4",
         "video/webm": "audio/webm",
         "video/mpeg": "audio/mpeg",
         "video/quicktime": "audio/mp4",
+        "audio/x-m4a": "audio/mp4",
+        "audio/m4a": "audio/mp4",
     }
     media_type = type_map.get(media_type, media_type)
     if not media_type.startswith("audio/"):
