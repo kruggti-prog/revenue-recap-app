@@ -113,10 +113,10 @@ The report will show data for three months (current month, next month, following
 Here is the raw data:
 ${excelText}
 
-Return EXACTLY three lines in this format — nothing else, no extra text, no commentary:
-Current Month: [month name] | RN: [RN Delta from Pickup Since] | Rev: $[Revenue Delta from Pickup Since] | ADR: $[ADR Delta from Pickup Since] | Revenue Delta pacing [up/down] $[Revenue Delta from STLY as of]
-Next Month: [month name] | RN: [RN Delta from Pickup Since] | Rev: $[Revenue Delta from Pickup Since] | ADR: $[ADR Delta from Pickup Since] | Revenue Delta pacing [up/down] $[Revenue Delta from STLY as of]
-Following Month: [month name] | RN: [RN Delta from Pickup Since] | Rev: $[Revenue Delta from Pickup Since] | ADR: $[ADR Delta from Pickup Since] | Revenue Delta pacing [up/down] $[Revenue Delta from STLY as of]
+Return EXACTLY three lines — one per month shown in the data, in chronological order. Use the actual month name and year (e.g. "April 2026"). No labels like "Current Month" or "Next Month" — just the month name. Nothing else, no extra text, no commentary:
+[Month Year] | RN: [RN Delta from Pickup Since] | Rev: $[Revenue Delta from Pickup Since] | ADR: $[ADR Delta from Pickup Since] | Revenue Delta pacing [up/down] $[Revenue Delta from STLY as of]
+[Month Year] | RN: [RN Delta from Pickup Since] | Rev: $[Revenue Delta from Pickup Since] | ADR: $[ADR Delta from Pickup Since] | Revenue Delta pacing [up/down] $[Revenue Delta from STLY as of]
+[Month Year] | RN: [RN Delta from Pickup Since] | Rev: $[Revenue Delta from Pickup Since] | ADR: $[ADR Delta from Pickup Since] | Revenue Delta pacing [up/down] $[Revenue Delta from STLY as of]
 
 For the Revenue Delta pacing direction: if the value is positive use "up", if negative use "down". If a value is missing or unclear, use N/A.`;
 
