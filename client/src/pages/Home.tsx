@@ -609,6 +609,7 @@ export default function Home() {
       const fd = new FormData();
       fd.append("image", imageFile);
       fd.append("period", form.bookingPeriod);
+      fd.append("platform", "Booking.com");
       const res = await uploadForAnalysis("/api/ai/ota", fd);
       const summary = res.summary || "";
       setForm((p) => ({

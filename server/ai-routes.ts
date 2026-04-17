@@ -170,10 +170,11 @@ Use actual numbers from the screenshot wherever visible. If we're above index (a
         last14: "stays from the last 14 days vs comp set",
       };
       const periodLabel = periodMap[req.body.period] || "OTA production period";
+      const platform = req.body.platform || "Expedia";
 
-      const prompt = `Analyze this Expedia OTA Production Report screenshot showing ${periodLabel}.
+      const prompt = `Analyze this ${platform} OTA Production Report screenshot showing ${periodLabel}.
 
-You are writing a brief Expedia performance update for a hotel General Manager.
+You are writing a brief ${platform} performance update for a hotel General Manager.
 
 ${STYLE_INSTRUCTION}
 
