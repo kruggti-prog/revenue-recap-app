@@ -640,16 +640,17 @@ export default function Home() {
 
   // ── AI Analyze: Call Notes ──
   const analyzeCallNotes = async () => {
-    if (!form.callNotesFile) return;
+    if (!form.callNotesTranscript.trim()) return;
     set("callNotesAnalyzing", true);
     try {
       const fd = new FormData();
-      fd.append("file", form.callNotesFile);
-      fd.append("file_type", form.callNotesType);
+      // Send pasted transcript as a text blob
+      const blob = new Blob([form.callNotesTranscript], { type: "text/plain" });
+      fd.append("file", new File([blob], "transcript.txt", { type: "text/plain" }));
+      fd.append("file_type", "transcript");
       const res = await uploadForAnalysis("/api/ai/transcribe", fd);
       setForm((p) => ({
         ...p,
-        callNotesTranscript: res.transcript || "",
         callNotesSummary: res.summary || "",
         callNotesAnalyzing: false,
       }));
@@ -1142,54 +1143,19 @@ export default function Home() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-xs text-muted-foreground">
-                  Upload an audio recording, video file, or text transcript. The file will NOT be attached to the email — only the summary will appear.
+                  Transcribe your call in MeetScribe (or any app), then paste the transcript below. The file will NOT be attached to the email — only the summary will appear.
                 </p>
+                {/* Paste transcript directly */}
                 <div className="space-y-1">
-                  <Label className="text-xs">File Type</Label>
-                  <Select
-                    value={form.callNotesType}
-                    onValueChange={(v) => set("callNotesType", v as "audio" | "video" | "transcript")}
-                  >
-                    <SelectTrigger data-testid="select-call-type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="audio">Audio Recording (.mp3, .wav, .m4a)</SelectItem>
-                      <SelectItem value="video">Video Recording (.mp4, .mov, .webm)</SelectItem>
-                      <SelectItem value="transcript">Text Transcript (.txt)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label className="text-xs">Paste Transcript</Label>
+                  <Textarea
+                    placeholder="Paste your MeetScribe transcript here..."
+                    className="min-h-[120px] text-xs"
+                    value={form.callNotesTranscript}
+                    onChange={(e) => setForm((p) => ({ ...p, callNotesTranscript: e.target.value, callNotesSummary: "" }))}
+                  />
                 </div>
-                <FileUploadZone
-                  accept={
-                    form.callNotesType === "transcript"
-                      ? ".txt"
-                      : form.callNotesType === "video"
-                      ? ".mp4,.mov,.webm,.mpeg"
-                      : ".mp3,.wav,.m4a,.ogg,.flac,.webm"
-                  }
-                  label={`Upload ${form.callNotesType} file`}
-                  sublabel={
-                    form.callNotesType === "transcript"
-                      ? ".txt"
-                      : form.callNotesType === "video"
-                      ? ".mp4, .mov, .webm"
-                      : ".mp3, .wav, .m4a"
-                  }
-                  fileName={form.callNotesFileName}
-                  testId="call-notes"
-                  icon={Mic}
-                  onFile={(file) => {
-                    setForm((p) => ({
-                      ...p,
-                      callNotesFile: file,
-                      callNotesFileName: file.name,
-                      callNotesSummary: "",
-                      callNotesTranscript: "",
-                    }));
-                  }}
-                />
-                {form.callNotesFile && (
+                {form.callNotesTranscript.trim() && (
                   <Button
                     data-testid="analyze-btn-call-notes"
                     size="sm"
@@ -1203,7 +1169,7 @@ export default function Home() {
                     ) : (
                       <Sparkles className="w-3.5 h-3.5 text-primary" />
                     )}
-                    {form.callNotesAnalyzing ? "Transcribing & Summarizing..." : "Transcribe & Summarize"}
+                    {form.callNotesAnalyzing ? "Summarizing..." : "Summarize Call Notes"}
                   </Button>
                 )}
                 {form.callNotesSummary && (
