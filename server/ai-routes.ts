@@ -274,22 +274,19 @@ Write in that exact style — conversational paragraphs, real numbers, no lists,
       if (fileType === "transcript") {
         transcriptText = fileData.buffer.toString("utf-8");
       } else {
-        const { execFileSync } = await import("child_process");
-        const os = await import("os");
-        const path = await import("path");
-        const fs = await import("fs");
-        const tmpFile = path.join(os.tmpdir(), `audio_${Date.now()}_${fileData.name}`);
-        fs.writeFileSync(tmpFile, fileData.buffer);
-        const scriptPath = "/home/user/workspace/revenue-recap-app/server/transcribe_helper.py";
-        try {
-          const output = execFileSync("python3", [scriptPath, tmpFile, fileData.mimetype], {
-            timeout: 600000,
-            encoding: "utf8",
-          });
-          transcriptText = output.trim();
-        } finally {
-          try { fs.unlinkSync(tmpFile); } catch {}
-        }
+        // Use OpenAI Whisper via Node SDK — no Python required
+        const { default: OpenAI } = await import("openai");
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        // Whisper needs a File-like object with a name so it knows the format
+        const audioFile = new File([fileData.buffer], fileData.name || "audio.m4a", {
+          type: fileData.mimetype || "audio/mp4",
+        });
+        const response = await openai.audio.transcriptions.create({
+          model: "whisper-1",
+          file: audioFile,
+          response_format: "text",
+        });
+        transcriptText = (response as any as string).trim();
       }
 
       const prompt = `You are summarizing a hotel revenue management call for a General Manager email recap.
