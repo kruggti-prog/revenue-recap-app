@@ -141,13 +141,20 @@ You are writing a brief CoStar performance update for a hotel General Manager.
 
 ${STYLE_INSTRUCTION}
 
-CRITICAL STRUCTURE: Write EXACTLY three labeled sections in this order. Each section label must appear on its own line followed by a colon, then 1-2 sentences of plain prose on the same line. No bullets, no markdown, no extra blank lines between sections.
+BEFORE writing, check whether the "% Chg" column for My Property shows dashes ("-") throughout instead of percentages. If it does, that means the hotel was not open last year and there is no year-over-year comparison data. In that case:
+- Do NOT make any year-over-year comparisons.
+- Be more lenient when interpreting indexes — it is extremely rare for a new hotel to index at or near 100 in its first year, so frame sub-100 indexes as expected for a new property and highlight the positive trajectory instead.
+- Focus the commentary on performance vs the comp set for this period only.
 
-Occupancy: [1-2 sentences covering hotel occupancy % vs comp set %, MPI index, and any day-of-week pattern if visible]
-ADR: [1-2 sentences covering hotel ADR $ vs comp set ADR $, ARI index, and any day-of-week softness if visible]
-RevPAR: [1-2 sentences covering hotel RevPAR $ vs comp set RevPAR $, RGI index, and the key opportunity or lever to close the gap]
+STAY BROAD: Write at the summary level only. Do NOT mention individual days of the week, specific daily rates, or day-by-day patterns. The GM needs the big picture — overall totals and averages vs the comp set, not a breakdown of Monday vs Thursday.
 
-Use actual numbers from the screenshot wherever visible. If we're above index (above 100), say so positively. If below, frame as an opportunity. Sound like a sharp revenue manager, not a report generator.`;
+CRITICAL STRUCTURE: Write EXACTLY three labeled sections in this order. Each section label must appear on its own line, then 1-2 sentences of plain prose. No bullets, no markdown, no extra blank lines between sections.
+
+Occupancy: [1-2 sentences — overall occupancy % vs comp set %, MPI index, broad takeaway only]
+ADR: [1-2 sentences — overall ADR $ vs comp set ADR $, ARI index, broad takeaway only]
+RevPAR: [1-2 sentences — overall RevPAR $ vs comp set RevPAR $, RGI index, and one strategic opportunity]
+
+Use the Total column figures wherever visible — do not pull from individual day columns. If we are above index (above 100) say so positively. If below, frame as an opportunity. Sound like a sharp revenue manager, not a report generator.`;
 
       const result = await analyzeImage(fileData.buffer, fileData.mimetype, prompt);
       res.json({ summary: result });
