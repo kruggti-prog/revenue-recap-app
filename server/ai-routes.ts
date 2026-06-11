@@ -164,6 +164,7 @@ Use actual numbers from the screenshot wherever visible. If we're above index (a
       if (!fileData) return res.status(400).json({ error: "No image provided" });
 
       const periodMap: Record<string, string> = {
+        next7: "stays booked for the next 7 days vs comp set",
         next14: "stays booked for the next 14 days vs comp set",
         next28: "stays booked for the next 28 days vs comp set",
         last7: "stays from the last 7 days vs comp set",
@@ -178,7 +179,19 @@ You are writing a brief ${platform} performance update for a hotel General Manag
 
 ${STYLE_INSTRUCTION}
 
-Write 2-3 short paragraphs. Include how we compare to the comp set, any standout numbers, and 1-2 opportunities if visible (visibility, pricing, restrictions, content). Keep each paragraph to 2-3 sentences. Mention actual figures where you can read them.`;
+CRITICAL — read this data correctly:
+- The three metrics shown are Revenue, Room Nights, and ADR (Average Daily Rate).
+- Each metric shows our number, a percentage, and a "Fair share" or "Competitive set" reference number.
+- The percentage (e.g. +68%, +110%, -19%) is NOT year-over-year change. It shows how much we are above or below the comp set's fair share baseline for this period.
+- "Fair share (6.6%): $18,095" means if we captured exactly our fair share of the market, we would have $18,095 in revenue. Our actual number ($30,446) is 68% above that fair share baseline.
+- "Fair share (6.6%): 103" means fair share room nights would be 103. We booked 216, which is 110% above fair share.
+- For ADR, "Competitive set: $213" is the comp set's actual average rate — we are 19% below that.
+- Do NOT say revenue is "up 68%" or room nights are "up 110%" — those are not growth figures, they are how far we are beating our fair share benchmark.
+- DO say things like: "We booked 216 room nights, which is 110% above our fair share of 103" or "Revenue came in at $30,446, running 68% ahead of our $18,095 fair share baseline."
+- IGNORE the fair share percentage (6.6%) entirely — do not mention it. It is an internal Expedia benchmark that does not change and is not useful to the GM.
+- All comparisons are against the comp set for this specific period only. There is no year-over-year data here.
+
+Write 2-3 short paragraphs. Cover revenue and room night performance vs comp set fair share, ADR vs the comp set, and 1-2 opportunities if visible (pricing, restrictions, content). Keep each paragraph to 2-3 sentences. Use actual figures from the screenshot.`;
 
       const result = await analyzeImage(fileData.buffer, fileData.mimetype, prompt);
       res.json({ summary: result });

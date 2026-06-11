@@ -119,6 +119,7 @@ const DEFAULT: FormState = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const OTA_PERIOD_LABELS: Record<string, string> = {
+  next7: "Stays Booked for the Next 7 Days vs Comp Set",
   next14: "Stays Booked for the Next 14 Days vs Comp Set",
   next28: "Stays Booked for the Next 28 Days vs Comp Set",
   last7: "Stays from the Last 7 Days vs Comp Set",
@@ -989,6 +990,7 @@ export default function Home() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="next7">Stays Booked for the Next 7 Days vs Comp Set</SelectItem>
                       <SelectItem value="next14">Stays Booked for the Next 14 Days vs Comp Set</SelectItem>
                       <SelectItem value="next28">Stays Booked for the Next 28 Days vs Comp Set</SelectItem>
                       <SelectItem value="last7">Stays from the Last 7 Days vs Comp Set</SelectItem>
@@ -1050,6 +1052,7 @@ export default function Home() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="next7">Stays Booked for the Next 7 Days vs Comp Set</SelectItem>
                           <SelectItem value="next14">Stays Booked for the Next 14 Days vs Comp Set</SelectItem>
                           <SelectItem value="next28">Stays Booked for the Next 28 Days vs Comp Set</SelectItem>
                           <SelectItem value="last7">Stays from the Last 7 Days vs Comp Set</SelectItem>
