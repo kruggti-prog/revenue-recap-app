@@ -164,7 +164,6 @@ Use actual numbers from the screenshot wherever visible. If we're above index (a
       if (!fileData) return res.status(400).json({ error: "No image provided" });
 
       const periodMap: Record<string, string> = {
-        next7: "stays booked for the next 7 days vs comp set",
         next14: "stays booked for the next 14 days vs comp set",
         next28: "stays booked for the next 28 days vs comp set",
         last7: "stays from the last 7 days vs comp set",
