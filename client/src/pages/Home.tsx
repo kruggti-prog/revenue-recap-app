@@ -659,6 +659,39 @@ export default function Home() {
     }
   };
 
+  const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
+
+  const handleSaveToFile = async () => {
+    if (!form.propertyName.trim()) {
+      alert("Please enter a Property Name before saving to file.");
+      return;
+    }
+    setSaving(true);
+    setSaveStatus("idle");
+    try {
+      const templateLabel = form.template === "mf-biweekly" ? "MF Bi-Weekly" : form.template === "mf-callrecap" ? "MF Call Recap" : "NON MF Monthly";
+      const plainText = buildEmailSections(form);
+      const res = await fetch("/api/save-recap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          property: form.propertyName.trim(),
+          template: templateLabel,
+          emailContent: plainText,
+        }),
+      });
+      if (!res.ok) throw new Error("Server error");
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    } catch (e) {
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 3000);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleCopy = () => {
     // Most reliable cross-browser approach: render HTML into a hidden div,
     // select all of it, then execCommand('copy') — works in Gmail/Outlook paste.
@@ -1217,6 +1250,16 @@ export default function Home() {
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   {copied ? "Copied!" : "Copy Email"}
+                </Button>
+                <Button
+                  data-testid="button-save"
+                  variant="outline"
+                  onClick={handleSaveToFile}
+                  disabled={saving}
+                  className="flex-1 gap-2 min-w-[140px]"
+                >
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saveStatus === "saved" ? <Check className="w-4 h-4 text-green-600" /> : <FolderOpen className="w-4 h-4" />}
+                  {saving ? "Saving..." : saveStatus === "saved" ? "Saved to File!" : saveStatus === "error" ? "Save Failed" : "Send to File"}
                 </Button>
                 <Button
                   data-testid="button-reset"

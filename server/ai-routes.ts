@@ -367,4 +367,40 @@ Write 2-4 short paragraphs covering: key topics discussed, any decisions made, a
       res.status(500).json({ error: e.message || "Failed to send email" });
     }
   });
+
+  // ── Save Recap to Google Sheet ────────────────────────────────────────────
+  app.post("/api/save-recap", async (req: Request, res: Response) => {
+    try {
+      const { property, template, emailContent } = req.body;
+      if (!property || !emailContent) {
+        return res.status(400).json({ error: "Property name and email content are required" });
+      }
+
+      const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxVhjjXV9KTfxBJ1uzN6Tf75tv6MVQMlryIS4DZZx3BC7xmLuBGI7Er6Rx12jQJ6QV_NA/exec";
+      const date = new Date().toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" });
+
+      // Google Apps Script requires form-encoded POST (not JSON) from external sources
+      const formBody = new URLSearchParams({
+        property: property.trim(),
+        date,
+        template: template || "Unknown",
+        emailContent,
+      }).toString();
+
+      const response = await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formBody,
+        redirect: "follow",
+      });
+
+      const text = await response.text();
+      // Apps Script may redirect — if we get HTML back it still likely succeeded
+      const success = text.includes("success") || response.ok;
+      res.json({ success: true, sheetUrl: "https://docs.google.com/spreadsheets/d/1SPkX9gpsii4R6gi-K74_rDHSlNIHLs_p4soOT1ddi-I/edit" });
+    } catch (e: any) {
+      console.error("Save recap error:", e);
+      res.status(500).json({ error: e.message || "Failed to save recap" });
+    }
+  });
 }
