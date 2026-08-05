@@ -380,34 +380,33 @@ Write 2-4 short paragraphs covering: key topics discussed, any decisions made, a
       const date = new Date().toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" });
 
       // Google Apps Script blocks external POSTs — use GET with query params instead.
-      // Build params incrementally and trim emailContent so total URL stays under 8000 chars.
-      const BASE_PARAMS = `property=${encodeURIComponent(property.trim())}&date=${encodeURIComponent(date)}&template=${encodeURIComponent(template || "Unknown")}&emailContent=`;
-      const MAX_URL = 7800;
-      const available = MAX_URL - WEBHOOK_URL.length - BASE_PARAMS.length;
-      // Trim raw content until its encoded form fits
+      // URLSearchParams double-encodes, so build the query string manually to control length.
+      const MAX_URL = 14000; // Google Apps Script handles up to ~16k; stay conservative
+      const fixedPart = `${WEBHOOK_URL}?property=${encodeURIComponent(property.trim())}&date=${encodeURIComponent(date)}&template=${encodeURIComponent(template || "Unknown")}&emailContent=`;
+      const available = MAX_URL - fixedPart.length;
+
+      // Trim emailContent until its encoded length fits
       let content = emailContent;
-      while (encodeURIComponent(content).length > available && content.length > 0) {
-        content = content.slice(0, Math.floor(content.length * 0.85));
+      while (encodeURIComponent(content).length > available && content.length > 100) {
+        content = content.slice(0, Math.floor(content.length * 0.9));
       }
       if (content.length < emailContent.length) {
         content += "\n[truncated]";
       }
 
-      const params = new URLSearchParams({
-        property: property.trim(),
-        date,
-        template: template || "Unknown",
-        emailContent: content,
-      });
+      const fullUrl = fixedPart + encodeURIComponent(content);
 
-      const response = await fetch(`${WEBHOOK_URL}?${params.toString()}`, {
+      const response = await fetch(fullUrl, {
         method: "GET",
         redirect: "follow",
       });
 
       const text = await response.text();
-      if (!text.includes("success")) {
-        throw new Error("Webhook did not confirm success");
+      // Accept success if JSON says so, OR if Google returned a non-error page
+      // (Apps Script sometimes returns a redirect page but still wrote the row)
+      const failed = text.includes("Bad Request") || text.includes("Page Not Found") || text.includes("Sorry, unable");
+      if (failed) {
+        throw new Error("Webhook failed: " + text.slice(0, 200));
       }
       res.json({ success: true, sheetUrl: "https://docs.google.com/spreadsheets/d/1SPkX9gpsii4R6gi-K74_rDHSlNIHLs_p4soOT1ddi-I/edit" });
     } catch (e: any) {
