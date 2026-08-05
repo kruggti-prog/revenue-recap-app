@@ -764,11 +764,14 @@ export default function Home() {
           emailContent: plainText,
         }),
       });
-      if (!res.ok) throw new Error("Server error");
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || json.error) throw new Error(json.error || `HTTP ${res.status}`);
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus("idle"), 3000);
-    } catch (e) {
+    } catch (e: any) {
+      console.error("Save to File error:", e?.message);
       setSaveStatus("error");
+      toast({ title: "Save failed", description: e?.message || "Unknown error", variant: "destructive" });
       setTimeout(() => setSaveStatus("idle"), 3000);
     } finally {
       setSaving(false);
