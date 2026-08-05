@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,31 @@ import {
   Loader2, Sparkles, X, ImageIcon, Paperclip, Mic, Send, FolderOpen
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { ChevronsUpDown } from "lucide-react";
+
+const PROPERTIES = [
+  "Aberdeen, SD", "Altoona, IA", "Amarillo, TX", "Anchorage, AK", "Ankeny, IA",
+  "Augusta, GA", "Beatrice, NE", "Bend, OR", "Bentonville, AR", "Billings, MT",
+  "Bismarck, ND", "Bozeman, MT", "Brookings, SD", "Buckeye, AZ", "Carson City, NV",
+  "Cheyenne, WY", "Colorado Springs, CO", "Council Bluffs, IA", "Davenport, IA",
+  "Dickinson, ND", "East Moline, IL", "Fargo, ND", "Ft. Pierre, SD", "Garner, NC",
+  "Grand Forks, ND", "Grand Rapids, MN", "Green Bay, WI", "Hastings, NE",
+  "Henderson, NV", "Huntersville, NC", "Hurricane, UT", "Idaho Falls, ID",
+  "Independence, MO", "Jacksonville, NC", "Jamestown, ND", "Jonesboro, AR",
+  "Kalispell, MT", "Ketchikan, AK", "King George, VA", "La Vista, NE",
+  "Las Vegas, NV", "Lebanon, TN", "Lithia Springs, GA", "Loveland, CO",
+  "Lubbock, TX", "Marion, OH", "Marquette, MI", "Meridian, ID", "Mesa, AZ",
+  "Midland, TX", "Missoula, MT", "Mitchell, SD", "Moab, UT", "Monaca, PA",
+  "Mount Pleasant, WI", "Nampa, ID", "Overland Park, KS", "Pasco, WA",
+  "Plainfield, IN", "Pooler, GA", "Port Charlotte, FL", "Portland East, OR",
+  "Randolph, VT", "Rapid City, SD", "Redding, CA", "Rock Springs, WY",
+  "Shakopee, MN", "Sioux Falls, SD", "St. George, UT", "St. Joseph, MO",
+  "Tucson North, AZ", "Tucson South, AZ", "Twin Falls, ID", "Vancouver, WA",
+  "Watertown, SD", "Wenatchee, WA", "West Jordan, UT", "West Valley City, UT",
+  "Wixom, MI", "Yakima, WA",
+];
 import { uploadForAnalysis } from "@/lib/api";
 import { ImageUploadSection } from "@/components/ImageUploadSection";
 
@@ -490,6 +515,67 @@ function FileUploadZone({
   );
 }
 
+// ─── Property Combobox ────────────────────────────────────────────────────────
+
+function PropertyCombobox({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filtered = useMemo(() =>
+    search.trim() === ""
+      ? PROPERTIES
+      : PROPERTIES.filter(p => p.toLowerCase().includes(search.toLowerCase())),
+    [search]
+  );
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          data-testid="input-property-name"
+          className="w-full justify-between font-normal text-left"
+        >
+          <span className={cn(!value && "text-muted-foreground")}>
+            {value || "Select a property..."}
+          </span>
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-full p-0" style={{ width: "var(--radix-popover-trigger-width)" }}>
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder="Type to search..."
+            value={search}
+            onValueChange={setSearch}
+          />
+          <CommandList>
+            <CommandEmpty>No property found.</CommandEmpty>
+            <CommandGroup>
+              {filtered.map(p => (
+                <CommandItem
+                  key={p}
+                  value={p}
+                  onSelect={() => {
+                    onChange(p);
+                    setSearch("");
+                    setOpen(false);
+                  }}
+                >
+                  <Check className={cn("mr-2 h-4 w-4", value === p ? "opacity-100" : "opacity-0")} />
+                  {p}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Home() {
@@ -663,10 +749,7 @@ export default function Home() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saved" | "error">("idle");
 
   const handleSaveToFile = async () => {
-    if (!form.propertyName.trim()) {
-      alert("Please enter a Property Name before saving to file.");
-      return;
-    }
+    if (!form.propertyName.trim()) return; // button is disabled, but guard anyway
     setSaving(true);
     setSaveStatus("idle");
     try {
@@ -842,12 +925,9 @@ export default function Home() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="propertyName">Property Name</Label>
-                <Input
-                  id="propertyName"
-                  data-testid="input-property-name"
-                  placeholder="e.g. Hilton Garden Inn Rapid City"
+                <PropertyCombobox
                   value={form.propertyName}
-                  onChange={(e) => set("propertyName", e.target.value)}
+                  onChange={(val) => set("propertyName", val)}
                 />
               </div>
             </CardContent>
@@ -1255,7 +1335,8 @@ export default function Home() {
                   data-testid="button-save"
                   variant="outline"
                   onClick={handleSaveToFile}
-                  disabled={saving}
+                  disabled={saving || !form.propertyName.trim()}
+                  title={!form.propertyName.trim() ? "Select a property before saving" : undefined}
                   className="flex-1 gap-2 min-w-[140px]"
                 >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saveStatus === "saved" ? <Check className="w-4 h-4 text-green-600" /> : <FolderOpen className="w-4 h-4" />}
