@@ -379,12 +379,25 @@ Write 2-4 short paragraphs covering: key topics discussed, any decisions made, a
       const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxU-JkJxNfqcxFTyVdYZE_xEDhmu5Q-Z2dgLZS7eGpoA5KhZuh1SA494bnXrDir2hfvfg/exec";
       const date = new Date().toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" });
 
-      // Google Apps Script blocks external POSTs — use GET with query params instead
+      // Google Apps Script blocks external POSTs — use GET with query params instead.
+      // Build params incrementally and trim emailContent so total URL stays under 8000 chars.
+      const BASE_PARAMS = `property=${encodeURIComponent(property.trim())}&date=${encodeURIComponent(date)}&template=${encodeURIComponent(template || "Unknown")}&emailContent=`;
+      const MAX_URL = 7800;
+      const available = MAX_URL - WEBHOOK_URL.length - BASE_PARAMS.length;
+      // Trim raw content until its encoded form fits
+      let content = emailContent;
+      while (encodeURIComponent(content).length > available && content.length > 0) {
+        content = content.slice(0, Math.floor(content.length * 0.85));
+      }
+      if (content.length < emailContent.length) {
+        content += "\n[truncated]";
+      }
+
       const params = new URLSearchParams({
         property: property.trim(),
         date,
         template: template || "Unknown",
-        emailContent,
+        emailContent: content,
       });
 
       const response = await fetch(`${WEBHOOK_URL}?${params.toString()}`, {
