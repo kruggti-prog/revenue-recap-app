@@ -376,7 +376,7 @@ Write 2-4 short paragraphs covering: key topics discussed, any decisions made, a
         return res.status(400).json({ error: "Property name and email content are required" });
       }
 
-      const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyuT400v1WU3-pYc3cqsktd4VC4g-5qTnxzFjW0m4HTDABpnYhMjALTbjK0XyZ-IN7GBw/exec";
+      const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxU-JkJxNfqcxFTyVdYZE_xEDhmu5Q-Z2dgLZS7eGpoA5KhZuh1SA494bnXrDir2hfvfg/exec";
       const date = new Date().toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" });
 
       // Google Apps Script blocks external POSTs — use GET with query params instead
