@@ -380,21 +380,13 @@ Write 2-4 short paragraphs covering: key topics discussed, any decisions made, a
       const date = new Date().toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" });
 
       // Google Apps Script blocks external POSTs — use GET with query params instead.
-      // URLSearchParams double-encodes, so build the query string manually to control length.
-      const MAX_URL = 14000; // Google Apps Script handles up to ~16k; stay conservative
-      const fixedPart = `${WEBHOOK_URL}?property=${encodeURIComponent(property.trim())}&date=${encodeURIComponent(date)}&template=${encodeURIComponent(template || "Unknown")}&emailContent=`;
-      const available = MAX_URL - fixedPart.length;
+      // Strip Unicode box-drawing separators (━) before encoding — they expand 7x in URLs.
+      const cleanContent = emailContent
+        .replace(/[─-╿▀-▟━-┃┄-┋┌-┓└-┛├-┣┤-┫┬-┳┴-┻┼-╋╌-╏═-╬╭-╰╱-╳╴-╿]+/g, "---")
+        .trim();
 
-      // Trim emailContent until its encoded length fits
-      let content = emailContent;
-      while (encodeURIComponent(content).length > available && content.length > 100) {
-        content = content.slice(0, Math.floor(content.length * 0.9));
-      }
-      if (content.length < emailContent.length) {
-        content += "\n[truncated]";
-      }
-
-      const fullUrl = fixedPart + encodeURIComponent(content);
+      const fullUrl = `${WEBHOOK_URL}?property=${encodeURIComponent(property.trim())}&date=${encodeURIComponent(date)}&template=${encodeURIComponent(template || "Unknown")}&emailContent=${encodeURIComponent(cleanContent)}`;
+      console.log("Save recap URL length:", fullUrl.length);
 
       const response = await fetch(fullUrl, {
         method: "GET",
