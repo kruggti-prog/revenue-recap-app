@@ -146,6 +146,15 @@ BEFORE writing, check whether the "% Chg" column for My Property shows dashes ("
 - Be more lenient when interpreting indexes — it is extremely rare for a new hotel to index at or near 100 in its first year, so frame sub-100 indexes as expected for a new property and highlight the positive trajectory instead.
 - Focus the commentary on performance vs the comp set for this period only.
 
+CRITICAL — HOW TO READ THIS DATA CORRECTLY:
+- "My Property" is the hotel we are writing about. "Comp Set" is the competitive set average.
+- Higher occupancy % for My Property vs Comp Set = My Property is winning on occupancy. This is GOOD.
+- Higher ADR $ for My Property vs Comp Set = My Property is charging more per room. This is GOOD.
+- Higher RevPAR $ for My Property vs Comp Set = My Property is generating more revenue per room. This is GOOD.
+- Index above 100 (MPI, ARI, RGI) = outperforming the comp set. This is GOOD.
+- Index below 100 = underperforming the comp set. This is an opportunity.
+- Do NOT reverse this logic under any circumstances. If My Property occupancy (86.6%) is higher than Comp Set occupancy (67.9%), that is strong performance — never describe it as underperformance.
+
 STAY BROAD: Write at the summary level only. Do NOT mention individual days of the week, specific daily rates, or day-by-day patterns. The GM needs the big picture — overall totals and averages vs the comp set, not a breakdown of Monday vs Thursday.
 
 CRITICAL STRUCTURE: Write EXACTLY three labeled sections in this order. Each section label must appear on its own line, then 1-2 sentences of plain prose. No bullets, no markdown, no extra blank lines between sections.
