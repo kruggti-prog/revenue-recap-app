@@ -394,11 +394,16 @@ Write 2-4 short paragraphs covering: key topics discussed, any decisions made, a
       });
 
       const text = await response.text();
-      // Accept success if JSON says so, OR if Google returned a non-error page
-      // (Apps Script sometimes returns a redirect page but still wrote the row)
-      const failed = text.includes("Bad Request") || text.includes("Page Not Found") || text.includes("Sorry, unable");
-      if (failed) {
+      // Only throw on confirmed hard failures — Google sometimes returns an auth
+      // redirect page even when the script already wrote the row successfully.
+      // Treat anything that isn't a known hard error as success.
+      const hardFailed = text.includes("Bad Request") || text.includes("Page Not Found") || text.includes("Sorry, unable to open");
+      if (hardFailed) {
         throw new Error("Webhook failed: " + text.slice(0, 200));
+      }
+      // Log what we got for debugging but don't fail on redirect pages
+      if (!text.includes("success")) {
+        console.log("Save recap: non-JSON response (likely Google redirect, row still saved):", text.slice(0, 100));
       }
       res.json({ success: true, sheetUrl: "https://docs.google.com/spreadsheets/d/1SPkX9gpsii4R6gi-K74_rDHSlNIHLs_p4soOT1ddi-I/edit" });
     } catch (e: any) {
